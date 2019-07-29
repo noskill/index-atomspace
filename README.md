@@ -37,4 +37,8 @@ When relevant patterns are found their indices are extracted and the
 result of their intersection is placed in temporary atomspace. Then query is applied
 to this atomspace to produce the final answer.
 
+### todo:
+It is possible to optimize query answering in certain cases, when there is general pattern, that
+completely covers indices of more specific ones. 
+
 
