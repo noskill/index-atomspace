@@ -5,22 +5,49 @@ from opencog.scheme_wrapper import scheme_eval_h
 from opencog.bindlink import execute_atom
 
 
-def check_pattern(expression, pattern):
-    # if patter matches query then it's relevant
-    if sc is not None:
-        match = execute_atom(tmp, pattern)
-        if match.out:
-            return True
-    return False
+def replace(atom, semantic_space, pattern_space, varmapping):
+    if atom.is_link():
+        args = [replace(x, semantic_space,
+                        pattern_space, varmapping) for x in atom.out]
+        return pattern_space.add_link(atom.type, args)
+    assert atom.is_node()
+    if atom in semantic_space:
+        return pattern_space.add_atom(atom)
+    if atom in varmapping:
+        return varmapping[atom]
+    new_varnode = pattern_space.add_node(types.VariableNode, '$X' + str(len(varmapping)))
+    varmapping[atom] = new_varnode
+    return new_varnode
+
 
 class Index:
     def __init__(self):
         self.pattern_space = AtomSpace()
+        self.semantic_space = AtomSpace()
         self.data_space = AtomSpace()
         # index maps subgraph pattern to maching atoms
         self._index = dict()
 
+    def add_toplevel_pattern(self, atom):
+        args = [self.pattern_space.add_node(types.VariableNode, '$X' + str(i)) for i in
+                                           range(atom.arity)]
+        l = self.pattern_space.add_link(atom.type, args)
+        bindlink = self.pattern_space.add_link(types.BindLink, [l, l])
+        self.add_pattern(bindlink)
+
+    def add_semantic_pattern(self, atom):
+        # find all nodes, that inherit from some atom from semantic atomspace
+        # replace such atoms by variable nodes
+        result = replace(atom, self.semantic_space, self.pattern_space, dict())
+        pattern = self.pattern_space.add_link(types.BindLink, [result, result])
+        self.add_pattern(pattern)
+
     def add_data(self, data):
+        data = self.data_space.add_atom(data)
+        assert data.is_link()
+        self.add_toplevel_pattern(data)
+        self.add_semantic_pattern(data)
+
         tmp = create_child_atomspace(self.pattern_space)
         content = tmp.add_atom(data)
         self.update_index(tmp, content, data)
@@ -30,8 +57,8 @@ class Index:
             match = execute_atom(atomspace, pat)
             # patterns can match patterns, so check:
             for m in match.out:
-                # todo: check if hashes from different atomspaces are same in c++
-                # for python they are differen
+                # should work with atoms from different atomspaces after
+                # merge, then it is possible to remove content
                 if hash(m) == hash(content):
                     self._index[pat].add(data)
 
@@ -78,8 +105,8 @@ class Index:
             get_link = self.pattern_space.add_link(types.GetLink, pattern)
             self._index[get_link].add(data)
 
-
     def add_pattern(self, pat):
+        assert pat.type == types.BindLink
         atom = self.pattern_space.add_atom(pat)
         if atom not in self._index:
             self._index[atom] = set()
