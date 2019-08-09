@@ -57,6 +57,8 @@ Is created for
 
 Possible optimization is to keep type information in TypedVariableList
 
+
+
 ## answering query
 
 First query is matched with all patterns to 
@@ -88,8 +90,25 @@ When relevant patterns are found their indices are extracted and the
 result of their intersection is placed in temporary atomspace. Then query is applied
 to this atomspace to produce the final answer.
 
-### todo:
-It is possible to optimize query answering in certain cases, when there is general pattern, that
-completely covers indices of more specific ones, or there is a complete match.
+## complex query processing with index guided pattern matching
 
+Complex query is query containing multiple closes;
 
+The idea is to interleave variable substitution with batch loading from index in order to improve the performance. Pattern matcher performs search starting from the most deep non-variable atom. In presence of atoms of the same depths, atom with the smallest incoming set is taken.
+While optimal process to answer this query in the presence of index and semantic atomspace should be guided by analysis of index patterns and semantic atomspace. 
+Search initialization heuristic
+The idea is to begin grounding always starting from link with the smallest corresponding index size.
+
+For each non-variable node in query:
+ Take enclosing Link
+ replace episodic memory nodes with variable
+ search among index patterns, if match is found in any of patterns, compute size of the atom set;
+Start search from Node in Link with the smallest atom set;
+
+Search procedure:
+While substitutions are available:
+substitute variable
+choose link to start using smallest index heuristic;
+repeat
+
+It is possible that the same pattern may be loaded twice using such procedure. To avoid this problem patterns should be marked as loaded.
