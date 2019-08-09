@@ -23,12 +23,12 @@ def replace(atom, semantic_space, pattern_space, varmapping):
     return new_varnode
 
 
-def rename(tmp, atomspace, atom):
+def rename(tmp, patternspace, atom):
     if atom.is_link():
-        args = [rename(tmp, atomspace, x) for x in atom.out]
+        args = [rename(tmp, patternspace, x) for x in atom.out]
         return tmp.add_link(atom.type, args)
     if atom.type == types.VariableNode:
-        if atom in atomspace:
+        if atom in patternspace:
             # todo: check for random collision
             rnd_uuid = uuid.uuid1()
             name = atom.name + str(rnd_uuid)
@@ -39,7 +39,6 @@ def rename(tmp, atomspace, atom):
 class Storage:
     def __init__(self):
         self._hash_to_idx = defaultdict(list)
-        self._idx_to_pos = dict()
         self.slow_storage = list()
 
     def add_atom(self, atom):
@@ -75,7 +74,7 @@ class Index:
         self.semantic_space = AtomSpace()
         # storage maps index to atom
         self._storage = storage
-        # index maps subgraph pattern to matching atoms
+        # index maps subgraph pattern to matching atom ids
         self._index = dict()
 
     def add_toplevel_pattern(self, atom):
@@ -115,7 +114,7 @@ class Index:
     def intersect(self, query):
         """
         Extracts relevant patterns to the query and intersects their indices
-        returns set of atoms
+        returns set of atoms ids
         """
         # put query in tmp atomspace, check if there are relevant patterns
         tmp = create_child_atomspace(self.pattern_space)
@@ -128,13 +127,14 @@ class Index:
         # todo: search subgraphs
         res_set = None
         for pat, idx in self._index.items():
+            # pattern is relevant if it matches query
             match = execute_atom(tmp, pat)
             for m in match.out:
                 if hash(m) == hash(q):
                     if res_set is None:
                         res_set = idx
                     else:
-                        res_set = idx.intersection(idx)
+                        res_set = res_set.intersection(idx)
         return res_set
 
     def query(self, result_atomspace, query):
