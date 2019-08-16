@@ -13,11 +13,6 @@
                 (VariableNode "$P")))
         (ChoiceLink
             (EvaluationLink
-                (PredicateNode "VA: likes")
-                (ListLink
-                    (VariableNode "$P")
-                    (VariableNode "$C")))
-            (EvaluationLink
                 (PredicateNode "VA: dislikes")
                 (ListLink
                     (VariableNode "$P")
@@ -25,5 +20,5 @@
         (InheritanceLink
             (VariableNode "$C")
             (ConceptNode "cuisine")))
-    (VariableNode "$P") ;-- result
+    (VariableNode "$P")
 )

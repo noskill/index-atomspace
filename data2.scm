@@ -6,6 +6,19 @@
       (ConceptNode "Chinese")))
 
   (EvaluationLink
+    (PredicateNode "VA: dislikes")
+    (ListLink
+      (ConceptNode "VA: person-3")
+      (ConceptNode "Chinese")))
+
+  (EvaluationLink
+    (PredicateNode "VA: dislikes")
+    (ListLink
+      (ConceptNode "VA: person-4")
+      (ConceptNode "Chinese")))
+
+
+  (EvaluationLink
     (PredicateNode "VA: likes")
     (ListLink
       (ConceptNode "VA: person-2")

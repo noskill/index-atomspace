@@ -116,6 +116,17 @@ include(${COGUTIL_DATA_DIR}/cmake/Summary.cmake)
 # ===================================================================
 # Check for existance of various required, optional packages.
 
+FIND_PACKAGE(Guile 2.2.2)
+IF (GUILE_FOUND AND GMP_LIBRARY AND GMP_INCLUDE_DIR)
+        ADD_DEFINITIONS(-DHAVE_GUILE)
+        SET(HAVE_GUILE 1)
+        INCLUDE_DIRECTORIES(${GUILE_INCLUDE_DIR})
+ELSE (GUILE_FOUND AND GMP_LIBRARY AND GMP_INCLUDE_DIR)
+        SET(GUILE_DIR_MESSAGE "Guile was not found; the scheme shell will not be built.\nTo over-ride, make sure GUILE_LIBRARIES and GUILE_INCLUDE_DIRS are set.")
+        MESSAGE(FATAL_ERROR "${GUILE_DIR_MESSAGE}")
+ENDIF (GUILE_FOUND AND GMP_LIBRARY AND GMP_INCLUDE_DIR)
+
+
 # AtomSpace
 FIND_PACKAGE(AtomSpace CONFIG REQUIRED)
 IF (ATOMSPACE_FOUND)
